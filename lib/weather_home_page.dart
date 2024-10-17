@@ -1,21 +1,35 @@
+import 'package:clean_code_asses/modal/weather.dart';
 import 'package:clean_code_asses/service/weather_service.dart';
 import 'package:flutter/material.dart';
 
+/// A StatefulWidget that displays the weather home page.
 class WeatherHomePage extends StatefulWidget {
+  /// Creates a WeatherHomePage.
   const WeatherHomePage({super.key});
 
   @override
   State<WeatherHomePage> createState() => _WeatherHomePageState();
 }
 
+/// The state of the WeatherHomePage.
 class _WeatherHomePageState extends State<WeatherHomePage> {
+  /// The service used to fetch weather data.
   final WeatherService _weatherService = WeatherService();
+
+  /// The current location entered by the user.
   String _location = '';
-  Map<String, dynamic>? _currentWeather;
-  List<dynamic>? _forecast;
+
+  /// The current weather data.
+  Weather? _currentWeather;
+
+  /// The weather forecast data.
+  List<Weather>? _forecast;
+
+  /// The error message to display if there's an error.
   String? _errorMessage;
 
-  void _getWeather() async {
+  /// Fetches and sets the current weather and forecast for the given location.
+  Future<void> _fetchAndSetWeather() async {
     setState(() {
       _errorMessage = null;
     });
@@ -43,15 +57,24 @@ class _WeatherHomePageState extends State<WeatherHomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildTextFiled(),
-            _buildButton(),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Enter location'),
+              onChanged: (value) {
+                setState(() {
+                  _location = value;
+                });
+              },
+            ),
+            ElevatedButton(
+              onPressed: _fetchAndSetWeather,
+              child: const Text('Get Weather'),
+            ),
             if (_errorMessage != null) ...[
-              _buildErrorText(),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             ],
             if (_currentWeather != null) ...[
-              Text('Current Weather: ${_currentWeather!['main']['temp']}°C'),
-              Text(
-                  'Condition: ${_currentWeather!['weather'][0]['description']}'),
+              Text('Current Weather: ${_currentWeather?.temperature}°C'),
+              Text('Condition: ${_currentWeather?.description}'),
             ],
             if (_forecast != null) ...[
               const Text('5-Day Forecast:'),
@@ -62,8 +85,8 @@ class _WeatherHomePageState extends State<WeatherHomePage> {
                     final forecastItem = _forecast![index];
                     return ListTile(
                       title: Text(
-                          '${forecastItem['dt_txt']} - ${forecastItem['main']['temp']}°C'),
-                      subtitle: Text(forecastItem['weather'][0]['description']),
+                          '${forecastItem.description} - ${forecastItem.temperature}°C'),
+                      subtitle: Text(forecastItem.description),
                     );
                   },
                 ),
@@ -72,25 +95,6 @@ class _WeatherHomePageState extends State<WeatherHomePage> {
           ],
         ),
       ),
-    );
-  }
-
-  Text _buildErrorText() =>
-      Text(_errorMessage!, style: const TextStyle(color: Colors.red));
-
-  ElevatedButton _buildButton() {
-    return ElevatedButton(
-      onPressed: _getWeather,
-      child: const Text('Get Weather'),
-    );
-  }
-
-  TextField _buildTextFiled() {
-    return TextField(
-      decoration: const InputDecoration(labelText: 'Enter location'),
-      onChanged: (value) {
-        _location = value;
-      },
     );
   }
 }
